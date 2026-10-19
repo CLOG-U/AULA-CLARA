@@ -53,8 +53,10 @@ def main():
         for name in names:
             if name != project.name:
                 archive.write(out / name, 'Entrega/' + name)
-        for name in ['LEER_ENTREGA.txt', 'SHA256SUMS.txt']:
-            archive.write(out / name, name)
+        archive.write(out / 'LEER_ENTREGA.txt', 'LEER_ENTREGA.txt')
+        bundle_hashes = [hashlib.file_digest((out / name).open('rb'), 'sha256').hexdigest() + '  Entrega/' + name
+                         for name in names if name != project.name]
+        archive.writestr('SHA256SUMS.txt', '\n'.join(bundle_hashes) + '\n')
     for file in [project, bundle]:
         with ZipFile(file) as archive:
             assert archive.testzip() is None, 'Invalid ZIP: ' + file.name
