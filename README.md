@@ -60,7 +60,7 @@ Contenido de ancho flexible, límite de lectura de 840 dp, formularios desplazab
 - [Guía para explicar el proyecto](docs/GUIA_DEFENSA.md).
 - [Trazabilidad de pantallas y requisitos](docs/TRAZABILIDAD.md).
 - `docs/evidencias/`: capturas de la aplicación ejecutada y resumen de verificación, cuando se han generado.
-- `entrega/`: documentos y APK preparados para revisión.
+- En el paquete completo, `Entrega/` contiene el Word, los PDF y el APK; `AulaClara/` contiene el proyecto Android. Estos archivos se generan fuera del checkout.
 
 La rúbrica pide conservar el repositorio `https://github.com/CLOG-U/AULA-CLARA`, registrar la participación en Git y entregar personalmente el Word en Moodle.
 
