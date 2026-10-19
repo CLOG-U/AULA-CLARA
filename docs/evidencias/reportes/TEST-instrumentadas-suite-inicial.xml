@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="ec.edu.aulaclara.MvpJourneyTest" tests="6" failures="1" errors="0" skipped="0" time="362.896" timestamp="2026-10-19T02:54:33" hostname="localhost">
+  <properties>
+    <property name="device" value="aula_clara_api29(AVD) - 10" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="activityRecreationKeepsSessionAndAgenda" classname="ec.edu.aulaclara.MvpJourneyTest" time="67.591" />
+  <testcase name="settingsThemeReminderAndLogoutWork" classname="ec.edu.aulaclara.MvpJourneyTest" time="62.366" />
+  <testcase name="filtersSearchAndDiscardAreReachable" classname="ec.edu.aulaclara.MvpJourneyTest" time="64.702" />
+  <testcase name="createEditCompleteAndDeleteDelivery" classname="ec.edu.aulaclara.MvpJourneyTest" time="48.52">
+    <failure>java.lang.AssertionError: Assert failed: The component is not displayed!
+at androidx.compose.ui.test.AssertionsKt.assertIsDisplayed(Assertions.kt:34)
+at ec.edu.aulaclara.MvpJourneyTest.createEditCompleteAndDeleteDelivery(MvpJourneyTest.kt:51)
+</failure>
+  </testcase>
+  <testcase name="emptyAccountCanCreateFirstSubjectAndDelivery" classname="ec.edu.aulaclara.MvpJourneyTest" time="56.791" />
+  <testcase name="linkedSubjectIsProtectedAndUnusedSubjectCanBeDeleted" classname="ec.edu.aulaclara.MvpJourneyTest" time="42.935" />
+</testsuite>

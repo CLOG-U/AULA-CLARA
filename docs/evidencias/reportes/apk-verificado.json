@@ -1,0 +1,5 @@
+{
+  "sha256": "d8b23456a663bc9ca67ad3aa308e755deb1a2960cfc608e741ac78cf32b5317b",
+  "app_version": "0.2.0",
+  "purpose": "Same APK for the general instrumented suite and the targeted rerun."
+}

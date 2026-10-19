@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ec.edu.aulaclara.ComposeMvpTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-19T02:36:28" hostname="6f31edd90b2e" time="42.458">
+  <properties/>
+  <testcase name="compactScreenKeepsPrimaryActionsReachable" classname="ec.edu.aulaclara.ComposeMvpTest" time="23.066"/>
+  <testcase name="newSessionCreatesFirstSubjectWithoutLosingDeliveryDraft" classname="ec.edu.aulaclara.ComposeMvpTest" time="4.128"/>
+  <testcase name="catalogsFilterAndThemeNavigation" classname="ec.edu.aulaclara.ComposeMvpTest" time="5.108"/>
+  <testcase name="formValidationAndDiscardKeepDraft" classname="ec.edu.aulaclara.ComposeMvpTest" time="5.07"/>
+  <testcase name="tabletScreenAndActivityRecreationKeepAgenda" classname="ec.edu.aulaclara.ComposeMvpTest" time="1.802"/>
+  <testcase name="createEditCompleteDeleteAndCapture" classname="ec.edu.aulaclara.ComposeMvpTest" time="3.275"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

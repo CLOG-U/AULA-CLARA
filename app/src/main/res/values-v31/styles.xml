@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.AulaClara" parent="Theme.AulaClara.Base">
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowSplashScreenBackground">#F3F8FA</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    </style>
+</resources>

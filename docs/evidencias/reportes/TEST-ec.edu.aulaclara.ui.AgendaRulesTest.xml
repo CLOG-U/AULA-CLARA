@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ec.edu.aulaclara.ui.AgendaRulesTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-19T02:37:11" hostname="6f31edd90b2e" time="0.032">
+  <properties/>
+  <testcase name="pendingListExcludesCompletedAndSortsByDeadline" classname="ec.edu.aulaclara.ui.AgendaRulesTest" time="0.016"/>
+  <testcase name="weeklySummaryUsesMondayThroughSundayAndExcludesCompleted" classname="ec.edu.aulaclara.ui.AgendaRulesTest" time="0.0"/>
+  <testcase name="searchCombinesStateSubjectAndTypeWithoutAccents" classname="ec.edu.aulaclara.ui.AgendaRulesTest" time="0.003"/>
+  <testcase name="duplicateNamesIgnoreAccentsCaseAndExtraSpaces" classname="ec.edu.aulaclara.ui.AgendaRulesTest" time="0.001"/>
+  <testcase name="associatedCatalogsCannotBeDeletedEvenForCompletedDeliveries" classname="ec.edu.aulaclara.ui.AgendaRulesTest" time="0.0"/>
+  <testcase name="completedFilterAndAllFilterHaveDistinctResults" classname="ec.edu.aulaclara.ui.AgendaRulesTest" time="0.001"/>
+  <testcase name="preferredOrderChangesListWithoutChangingDeadlines" classname="ec.edu.aulaclara.ui.AgendaRulesTest" time="0.008"/>
+  <testcase name="completingDeliveryRemovesItFromPendingAndWeeklySummary" classname="ec.edu.aulaclara.ui.AgendaRulesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

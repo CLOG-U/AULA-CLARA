@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "Compilación del APK de desarrollo: correcta (assembleDebug).",
+    "Ocho pruebas de reglas de negocio: aprobadas; cero fallidas, omitidas o con error.",
+    "Seis pruebas de interfaz con Robolectric y Android API 34: aprobadas; cero fallidas, omitidas o con error.",
+    "Recorridos comprobados: crear, editar, completar, cancelar/confirmar borrado, catálogos, búsqueda, temas, selectores y conservación del borrador.",
+    "Adaptabilidad comprobada con interfaz ejecutada a 320, 390 y 800 dp; recreación de actividad conserva la agenda.",
+    "Android Lint: cero errores y cero advertencias.",
+    "APK de pruebas instrumentadas: compilado correctamente (assembleDebugAndroidTest).",
+    "Emulador Android 10 / API 29: cinco de seis recorridos aprobaron en la suite general. El restante aprobó en repetición dirigida (1/1), tras ajustar la comprobación al desplazamiento. Se utilizó el mismo APK; ambos informes se conservan."
+  ],
+  "environment": "Linux x86_64; JDK 17; Gradle 8.11.1; Android Gradle Plugin 8.9.2; Kotlin 2.1.20; SDK de compilación 35; Robolectric 4.14.1 con Android API 34 y renderizado Skia nativo. Emulador AOSP Android 10 / API 29.",
+  "limitations": "No se probó en un teléfono físico ni en todas las versiones Android compatibles. La autenticación, persistencia permanente y notificaciones reales pertenecen a etapas posteriores.",
+  "screenshot_source": "Estas imágenes corresponden a la interfaz Compose ejecutada con el framework Android API 34 mediante Robolectric y renderizada por Skia nativo. No son imágenes del prototipo ni capturas de un teléfono físico."
+}
