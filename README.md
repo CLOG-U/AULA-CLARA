@@ -13,6 +13,8 @@ Trabajo autónomo individual de Carlos Luis Ortiz García, para Desarrollo de ap
 
 El SDK local se configura mediante Android Studio o un `local.properties` con `sdk.dir=...`; este archivo no se versiona.
 
+Si el emulador no acepta el teclado del computador, apagarlo y habilitar **Enable keyboard input** en la configuración avanzada del dispositivo virtual. Si esa opción no aparece, editar el `config.ini` de ese AVD (desde **Show on Disk**) y establecer `hw.keyboard=yes` y `hw.keyboard.lid=no`. Iniciar con **Cold Boot Now** para aplicar el cambio. Para conservar también el teclado en pantalla, activar **Mostrar teclado virtual** en los ajustes de teclado físico de Android, o ejecutar `adb -s emulator-5554 shell settings put secure show_ime_with_hard_keyboard 1` (usar el serial correspondiente si es distinto). En la nube, los scripts de inicio y preparación aplican ambos ajustes al AVD dedicado.
+
 ```sh
 ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 ./gradlew :app:connectedDebugAndroidTest

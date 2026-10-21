@@ -18,6 +18,11 @@ if [[ ! -r /dev/kvm || ! -w /dev/kvm ]]; then
 fi
 for ((attempt=0; attempt<180; attempt++)); do
     if [[ "$(adb -s "$device_serial" shell getprop sys.boot_completed | tr -d '\r')" == 1 ]]; then
+        adb -s "$device_serial" shell input keyevent KEYCODE_WAKEUP
+        adb -s "$device_serial" shell wm dismiss-keyguard
+        adb -s "$device_serial" shell svc power stayon true
+        # Keep the on-screen keyboard available alongside the computer keyboard.
+        adb -s "$device_serial" shell settings put secure show_ime_with_hard_keyboard 1
         adb -s "$device_serial" shell svc wifi disable
         adb -s "$device_serial" shell svc data disable
         adb -s "$device_serial" shell settings put global window_animation_scale 0
