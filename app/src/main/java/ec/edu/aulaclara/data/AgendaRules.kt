@@ -1,4 +1,4 @@
-package ec.edu.aulaclara.ui
+package ec.edu.aulaclara.data
 
 import java.text.Normalizer
 import java.time.DayOfWeek

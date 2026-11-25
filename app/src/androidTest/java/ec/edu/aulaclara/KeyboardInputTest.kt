@@ -5,6 +5,9 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import ec.edu.aulaclara.di.AulaClaraApplication
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,6 +15,10 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class KeyboardInputTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
+
+    @Before fun clearSession() = runBlocking {
+        (ui.activity.application as AulaClaraApplication).agendaRepository.signOut()
+    }
 
     private fun type(tag: String, text: String) {
         ui.onNodeWithTag(tag).performScrollTo().performClick()
@@ -31,6 +38,7 @@ class KeyboardInputTest {
         ui.onNodeWithContentDescription("Mostrar contraseña").performClick()
         type("auth_password", "Agenda2026")
         ui.onNodeWithTag("auth_submit").performScrollTo().performClick()
+        ui.waitUntil(10_000) { ui.onAllNodesWithText("Hola, teclado").fetchSemanticsNodes().isNotEmpty() }
         ui.onNodeWithText("Hola, teclado").assertIsDisplayed()
         ui.onNodeWithText("Crear primera entrega").performScrollTo().performClick()
         type("delivery_title", "Entrega con teclado")

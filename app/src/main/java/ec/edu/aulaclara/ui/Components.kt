@@ -18,6 +18,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import ec.edu.aulaclara.data.ActivityType
+import ec.edu.aulaclara.data.Delivery
+import ec.edu.aulaclara.data.Subject
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale

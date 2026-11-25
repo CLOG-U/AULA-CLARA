@@ -1,5 +1,7 @@
 package ec.edu.aulaclara.ui
 
+import ec.edu.aulaclara.data.*
+
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.LocalDate

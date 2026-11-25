@@ -11,21 +11,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import ec.edu.aulaclara.data.DeliveryFilter
 
 @Composable
-fun DeliveryListScreen(state: AgendaState, onBack: () -> Unit, onNew: () -> Unit, onDetail: (Long) -> Unit) {
-    var query by rememberSaveable { mutableStateOf("") }
-    var filter by rememberSaveable { mutableStateOf(DeliveryFilter.PENDING) }
-    var subjectId by rememberSaveable { mutableStateOf<Long?>(null) }
+internal fun DeliveryListScreen(
+    state: DeliveryListUiState,
+    onBack: () -> Unit,
+    onNew: () -> Unit,
+    onDetail: (Long) -> Unit,
+    onQueryChange: (String) -> Unit,
+    onApplyFilters: (DeliveryFilter, Long?) -> Unit,
+    onClearFilters: () -> Unit,
+) {
+    val (query, filter, subjectId) = state.filters
     var showFilters by rememberSaveable { mutableStateOf(false) }
-    val visible = visibleDeliveries(state.deliveries, state.subjects, state.types, query, filter, subjectId, state.order)
+    val visible = state.visible
     ScreenFrame("Entregas", onBack) { padding ->
         PageColumn(Modifier.padding(padding)) {
             Text("Orden: ${state.order.label.lowercase()}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(query, { query = it }, Modifier.weight(1f).testTag("delivery_search"), singleLine = true,
+                OutlinedTextField(query, onQueryChange, Modifier.weight(1f).testTag("delivery_search"), singleLine = true,
                     placeholder = { Text("Buscar entrega") }, leadingIcon = { Icon(AulaIcons.Search, null) },
-                    trailingIcon = if (query.isNotEmpty()) ({ IconButton({ query = "" }) { Icon(AulaIcons.Close, "Borrar búsqueda") } }) else null)
+                    trailingIcon = if (query.isNotEmpty()) ({ IconButton({ onQueryChange("") }) { Icon(AulaIcons.Close, "Borrar búsqueda") } }) else null)
                 FilledTonalIconButton({ showFilters = true }, Modifier.size(52.dp).testTag("open_filters")) { Icon(AulaIcons.Tune, "Filtrar entregas") }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -34,19 +41,19 @@ fun DeliveryListScreen(state: AgendaState, onBack: () -> Unit, onNew: () -> Unit
             }
             Text("${visible.size} ${if (visible.size == 1) "entrega" else "entregas"}", style = MaterialTheme.typography.labelSmall)
             if (visible.isEmpty()) {
-                if (state.deliveries.isEmpty()) EmptyContent("Tu lista empieza aquí", "Registra una entrega para organizar tu semana.", "Nueva entrega", onNew)
+                if (state.empty) EmptyContent("Tu lista empieza aquí", "Registra una entrega para organizar tu semana.", "Nueva entrega", onNew)
                 else {
                     InfoBox("No hay entregas que coincidan con tu búsqueda y filtros.", AulaIcons.SearchOff)
-                    SecondaryButton("Mostrar todas", { query = ""; filter = DeliveryFilter.ALL; subjectId = null })
+                    SecondaryButton("Mostrar todas", onClearFilters)
                 }
             }
-            visible.forEach { d -> DeliveryCard(d, state.subjects.find { it.id == d.subjectId }, state.types.find { it.id == d.typeId }) { onDetail(d.id) } }
-            if (state.deliveries.isNotEmpty()) PrimaryButton("Nueva entrega", onNew, Modifier.testTag("new_delivery"), AulaIcons.Add)
+            visible.forEach { item -> DeliveryCard(item.delivery, item.subject, item.type) { onDetail(item.delivery.id) } }
+            if (!state.empty) PrimaryButton("Nueva entrega", onNew, Modifier.testTag("new_delivery"), AulaIcons.Add)
         }
     }
     if (showFilters) {
-        var draftFilter by remember { mutableStateOf(filter) }
-        var draftSubject by remember { mutableStateOf(subjectId) }
+        var draftFilter by rememberSaveable { mutableStateOf(filter) }
+        var draftSubject by rememberSaveable { mutableStateOf(subjectId) }
         ModalBottomSheet(onDismissRequest = { showFilters = false }) {
             Column(Modifier.fillMaxWidth().heightIn(max = 620.dp).verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 28.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -59,7 +66,7 @@ fun DeliveryListScreen(state: AgendaState, onBack: () -> Unit, onNew: () -> Unit
                 FilterSubject("Todas las materias", draftSubject == null) { draftSubject = null }
                 state.subjects.forEach { s -> FilterSubject(s.name, draftSubject == s.id) { draftSubject = s.id } }
                 TextButton({ draftFilter = DeliveryFilter.ALL; draftSubject = null }) { Text("Limpiar filtros") }
-                PrimaryButton("Aplicar filtros", { filter = draftFilter; subjectId = draftSubject; showFilters = false })
+                PrimaryButton("Aplicar filtros", { onApplyFilters(draftFilter, draftSubject); showFilters = false })
             }
         }
     }

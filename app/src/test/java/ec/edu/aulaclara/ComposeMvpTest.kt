@@ -23,9 +23,14 @@ class ComposeMvpTest {
     private fun demo() {
         ui.waitUntil(30_000) { ui.onAllNodesWithTag("login_demo").fetchSemanticsNodes().isNotEmpty() }
         click("login_demo")
+        waitForText("Hola, Carlos")
         ui.onNodeWithText("Hola, Carlos").assertIsDisplayed()
     }
     private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
+    private fun waitForText(text: String, useUnmergedTree: Boolean = false) =
+        ui.waitUntil(10_000) { ui.onAllNodesWithText(text, useUnmergedTree = useUnmergedTree).fetchSemanticsNodes().isNotEmpty() }
+    private fun waitForTag(tag: String) =
+        ui.waitUntil(10_000) { ui.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }
     private fun capture(name: String) {
         ui.waitForIdle()
         val view = ui.activity.window.decorView
@@ -50,11 +55,14 @@ class ComposeMvpTest {
         ui.onNodeWithTag("delivery_title").performScrollTo()
         capture("02-formulario")
         click("save_delivery")
+        waitForTag("edit_delivery")
         ui.onNodeWithText("Prototipo de navegación").assertIsDisplayed()
         click("edit_delivery")
         ui.onNodeWithTag("delivery_title").performTextReplacement("Prototipo de Aula Clara")
         click("save_delivery")
+        waitForTag("toggle_completed")
         click("toggle_completed")
+        waitForText("Completada", useUnmergedTree = true)
         ui.onNodeWithText("Completada", useUnmergedTree = true).assertIsDisplayed()
         capture("03-detalle-completado")
         click("delete_delivery")
@@ -62,6 +70,7 @@ class ComposeMvpTest {
         ui.onNodeWithText("Prototipo de Aula Clara").assertExists()
         click("delete_delivery")
         ui.onAllNodesWithText("Eliminar entrega").onLast().performClick()
+        waitForText("Hola, Carlos")
         ui.onNodeWithText("Hola, Carlos").assertIsDisplayed()
         ui.onNodeWithText("Prototipo de Aula Clara").assertDoesNotExist()
     }
@@ -75,6 +84,7 @@ class ComposeMvpTest {
         click("new_subject")
         ui.onNodeWithTag("catalog_name").performTextInput("Redes")
         click("save_catalog")
+        waitForText("Redes")
         ui.onNodeWithText("Redes").assertExists()
         ui.onNodeWithTag("types_tab").performClick()
         ui.onNodeWithText("Proyecto").performClick()
@@ -83,9 +93,11 @@ class ComposeMvpTest {
         ui.onNodeWithText("Nuevo tipo").performScrollTo().performClick()
         ui.onNodeWithTag("catalog_name").performTextInput("Laboratorio")
         click("save_catalog")
+        waitForTag("types_tab")
         ui.onNodeWithText("Laboratorio").performScrollTo().performClick()
         click("delete_catalog")
         ui.onAllNodesWithText("Eliminar tipo").onLast().performClick()
+        waitForTag("types_tab")
         ui.onNodeWithText("Laboratorio").assertDoesNotExist()
         ui.onNodeWithTag("nav_home").performClick()
         ui.onNodeWithText("Ver todas").performScrollTo().performClick()
@@ -123,13 +135,16 @@ class ComposeMvpTest {
         ui.onNodeWithTag("auth_email").performTextInput("ana@ejemplo.com")
         ui.onNodeWithTag("auth_password").performTextInput("Ejemplo2026")
         click("auth_submit")
+        waitForText("Crear primera entrega")
         ui.onNodeWithText("Crear primera entrega").performScrollTo().performClick()
         ui.onNodeWithTag("delivery_title").performTextInput("Primera actividad")
         ui.onNodeWithText("Crear primera materia").performScrollTo().performClick()
         ui.onNodeWithTag("catalog_name").performTextInput("Programación")
         click("save_catalog")
+        waitForTag("delivery_title")
         ui.onNodeWithTag("delivery_title").assertTextContains("Primera actividad")
         click("save_delivery")
+        waitForTag("edit_delivery")
         ui.onNodeWithText("Primera actividad").assertIsDisplayed()
     }
 
@@ -140,6 +155,7 @@ class ComposeMvpTest {
         click("new_delivery")
         ui.onNodeWithTag("delivery_title").performTextInput("Pantalla pequeña")
         click("save_delivery")
+        waitForTag("edit_delivery")
         ui.onNodeWithText("Pantalla pequeña").assertIsDisplayed()
     }
 
