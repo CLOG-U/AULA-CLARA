@@ -3,14 +3,19 @@ package ec.edu.aulaclara.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import ec.edu.aulaclara.data.AgendaRepository
+import ec.edu.aulaclara.di.AulaClaraApplication
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -18,7 +23,8 @@ private data class Destination(val route: String, val label: String, val icon: I
 
 @Composable
 fun AulaClaraApp() {
-    val state = rememberSaveable(saver = AgendaState.Saver) { AgendaState() }
+    val model = agendaViewModel(::AppViewModel)
+    val state by model.uiState.collectAsStateWithLifecycle()
     AulaClaraTheme(state.theme) {
         val nav = rememberNavController()
         val entry by nav.currentBackStackEntryAsState()
@@ -34,9 +40,21 @@ fun AulaClaraApp() {
         val newDelivery: () -> Unit = { nav.navigate("delivery/new") }
         fun subjectRoute(id: Long?) = if (id == null) "subject/new" else "subject/edit/$id"
         fun typeRoute(id: Long?) = if (id == null) "type/new" else "type/edit/$id"
-        val enter: (String, String, Boolean) -> Unit = { name, email, demo ->
-            state.startSession(name, email, demo)
-            nav.navigate("home") { popUpTo(nav.graph.id) { inclusive = true } }
+        fun replaceStack(destination: String) {
+            nav.navigate(destination) { popUpTo(nav.graph.id) { inclusive = true } }
+        }
+        LaunchedEffect(route, state.signedIn) {
+            val current = route ?: return@LaunchedEffect
+            val auth = current == "login" || current == "register"
+            if (current == "splash") {
+                delay(450)
+                replaceStack(if (state.signedIn) "home" else "login")
+            } else if (auth && state.signedIn) {
+                replaceStack("home")
+            } else if (!auth && !state.signedIn) {
+                roots.forEach { nav.clearBackStack(it.route) }
+                replaceStack("login")
+            }
         }
         Scaffold(containerColor = MaterialTheme.colorScheme.background,
             bottomBar = {
@@ -52,36 +70,149 @@ fun AulaClaraApp() {
             }) { padding ->
             Column(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
             NavHost(nav, startDestination = "splash", modifier = Modifier.weight(1f).fillMaxWidth()) {
-                composable("splash") {
-                    SplashScreen()
-                    LaunchedEffect(Unit) { delay(450); nav.navigate(if (state.signedIn) "home" else "login") { popUpTo("splash") { inclusive = true } } }
+                composable("splash") { SplashScreen() }
+                composable("login") { AuthRoute(false) { nav.navigate("register") } }
+                composable("register") { AuthRoute(true, back) }
+                composable("home") {
+                    val vm = agendaViewModel(::HomeViewModel)
+                    val screenState by vm.uiState.collectAsStateWithLifecycle()
+                    HomeScreen(
+                        screenState, newDelivery,
+                        onAll = { nav.navigate("deliveries") },
+                        onDetail = { nav.navigate("delivery/$it") },
+                    )
                 }
-                composable("login") { AuthScreen(false, { nav.navigate("register") }, enter) }
-                composable("register") { AuthScreen(true, back, enter) }
-                composable("home") { HomeScreen(state, newDelivery, { nav.navigate("deliveries") }, { nav.navigate("delivery/$it") }) }
-                composable("deliveries") { DeliveryListScreen(state, back, newDelivery, { nav.navigate("delivery/$it") }) }
-                composable("delivery/new") { DeliveryFormScreen(state, null, back, { id ->
-                    nav.popBackStack(); nav.navigate("delivery/$id"); notify("Entrega guardada")
-                }, { nav.navigate("subject/new") }, { nav.navigate("type/new") }) }
+                composable("deliveries") {
+                    val vm = agendaViewModel(::DeliveryListViewModel)
+                    val screenState by vm.uiState.collectAsStateWithLifecycle()
+                    DeliveryListScreen(
+                        screenState, back, newDelivery, { nav.navigate("delivery/$it") },
+                        vm::setQuery, vm::applyFilters, vm::clearFilters,
+                    )
+                }
+                val newSubject = { nav.navigate("subject/new") }
+                val newType = { nav.navigate("type/new") }
+                composable("delivery/new") {
+                    DeliveryFormRoute(null, back, newSubject, newType, notify) { id ->
+                        nav.popBackStack()
+                        nav.navigate("delivery/$id")
+                        notify("Entrega guardada")
+                    }
+                }
                 composable("delivery/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { e ->
                     val id = e.arguments!!.getLong("id")
-                    DeliveryDetailScreen(state, id, back, { nav.navigate("delivery/edit/$id") }, back, notify)
+                    val vm: DeliveryDetailViewModel = agendaViewModel { DeliveryDetailViewModel(it, id) }
+                    val screenState by vm.uiState.collectAsStateWithLifecycle()
+                    val action by vm.action.collectAsStateWithLifecycle()
+                    DeliveryDetailScreen(
+                        screenState, action == ScreenAction.Working, back, { nav.navigate("delivery/edit/$id") },
+                        vm::toggleCompleted, vm::delete,
+                    )
+                    HandleAction(action, vm::acknowledge) { result ->
+                        when (result) {
+                            ScreenAction.Deleted -> { back(); notify("Entrega eliminada") }
+                            is ScreenAction.Message -> notify(result.text)
+                            else -> Unit
+                        }
+                    }
                 }
                 composable("delivery/edit/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { e ->
-                    DeliveryFormScreen(state, e.arguments!!.getLong("id"), back, { nav.popBackStack(); notify("Cambios guardados") },
-                        { nav.navigate("subject/new") }, { nav.navigate("type/new") })
+                    DeliveryFormRoute(e.arguments!!.getLong("id"), back, newSubject, newType, notify) {
+                        nav.popBackStack()
+                        notify("Cambios guardados")
+                    }
                 }
-                composable("catalog") { CatalogScreen(state, { nav.navigate(subjectRoute(it)) }, { nav.navigate(typeRoute(it)) }) }
-                composable("subject/new") { CatalogEditorScreen(state, null, false, back, notify) }
-                composable("subject/edit/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { e -> CatalogEditorScreen(state, e.arguments!!.getLong("id"), false, back, notify) }
-                composable("type/new") { CatalogEditorScreen(state, null, true, back, notify) }
-                composable("type/edit/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { e -> CatalogEditorScreen(state, e.arguments!!.getLong("id"), true, back, notify) }
-                composable("settings") { SettingsScreen(state) { state.signOut(); nav.navigate("login") { popUpTo(nav.graph.id) { inclusive = true } } } }
+                composable("catalog") {
+                    val vm = agendaViewModel(::CatalogViewModel)
+                    val screenState by vm.uiState.collectAsStateWithLifecycle()
+                    CatalogScreen(screenState, vm::selectTypes, { nav.navigate(subjectRoute(it)) }, { nav.navigate(typeRoute(it)) })
+                }
+                composable("subject/new") { CatalogEditorRoute(null, false, back, notify) }
+                composable("subject/edit/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { e ->
+                    CatalogEditorRoute(e.arguments!!.getLong("id"), false, back, notify)
+                }
+                composable("type/new") { CatalogEditorRoute(null, true, back, notify) }
+                composable("type/edit/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { e ->
+                    CatalogEditorRoute(e.arguments!!.getLong("id"), true, back, notify)
+                }
+                composable("settings") {
+                    val vm = agendaViewModel(::SettingsViewModel)
+                    val screenState by vm.uiState.collectAsStateWithLifecycle()
+                    SettingsScreen(screenState, vm::setTheme, vm::setReminders, vm::setOrder, vm::signOut)
+                }
             }
             // Reserve measured space: messages must not intercept the bottom actions
             // of a scrolled form or detail screen on compact phones.
             SnackbarHost(snackbars, Modifier.fillMaxWidth().padding(horizontal = 16.dp))
             }
+        }
+    }
+}
+
+@Composable
+private inline fun <reified T : ViewModel> agendaViewModel(crossinline create: (AgendaRepository) -> T): T {
+    val app = LocalContext.current.applicationContext as AulaClaraApplication
+    return viewModel(factory = app.factory<T> { create(it) })
+}
+
+@Composable
+private fun AuthRoute(register: Boolean, onSwitch: () -> Unit) {
+    val vm: AuthViewModel = agendaViewModel { AuthViewModel(it, register) }
+    val state by vm.uiState.collectAsStateWithLifecycle()
+    AuthScreen(register, state, onSwitch, vm::setName, vm::setEmail, vm::setPassword, vm::setConfirmation, vm::submit, vm::exploreDemo)
+}
+
+@Composable
+private fun DeliveryFormRoute(
+    id: Long?,
+    onBack: () -> Unit,
+    onNewSubject: () -> Unit,
+    onNewType: () -> Unit,
+    notify: (String) -> Unit,
+    onSaved: (Long) -> Unit,
+) {
+    val vm: DeliveryFormViewModel = agendaViewModel { DeliveryFormViewModel(it, id) }
+    val state by vm.uiState.collectAsStateWithLifecycle()
+    val action by vm.action.collectAsStateWithLifecycle()
+    DeliveryFormScreen(state, action == ScreenAction.Working, onBack, onNewSubject, onNewType, vm::updateDraft, vm::save)
+    HandleAction(action, vm::acknowledge) { result ->
+        when (result) {
+            is ScreenAction.Saved -> onSaved(result.id)
+            is ScreenAction.Message -> notify(result.text)
+            else -> Unit
+        }
+    }
+}
+
+@Composable
+private fun CatalogEditorRoute(id: Long?, isType: Boolean, onBack: () -> Unit, notify: (String) -> Unit) {
+    val vm: CatalogEditorViewModel = agendaViewModel { CatalogEditorViewModel(it, id, isType) }
+    val state by vm.uiState.collectAsStateWithLifecycle()
+    val action by vm.action.collectAsStateWithLifecycle()
+    CatalogEditorScreen(state, action == ScreenAction.Working, onBack, vm::setName, vm::setColor, vm::save, vm::delete)
+    HandleAction(action, vm::acknowledge) { result ->
+        val noun = if (isType) "Tipo" else "Materia"
+        when (result) {
+            is ScreenAction.Saved -> {
+                onBack()
+                notify(if (id != null) "Cambios guardados" else if (isType) "Tipo creado" else "Materia creada")
+            }
+            ScreenAction.Deleted -> {
+                onBack()
+                notify(if (isType) "$noun eliminado" else "$noun eliminada")
+            }
+            is ScreenAction.Message -> notify(result.text)
+            else -> Unit
+        }
+    }
+}
+
+@Composable
+private fun HandleAction(action: ScreenAction, acknowledge: (ScreenAction) -> Unit, onResult: (ScreenAction) -> Unit) {
+    LaunchedEffect(action) {
+        if (action != ScreenAction.Idle && action != ScreenAction.Working) {
+            acknowledge(action)
+            onResult(action)
         }
     }
 }

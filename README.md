@@ -1,6 +1,6 @@
-# Aula Clara · Etapa 2
+# Aula Clara · Etapa 3
 
-Agenda académica Android nativa: pantallas y navegación del prototipo de la etapa 1, implementadas en **Kotlin, Jetpack Compose, Material 3 y Navigation Compose**.
+Agenda académica Android nativa con **Kotlin, Jetpack Compose, Material 3 y Navigation Compose**. La etapa 3 incorpora ViewModels por pantalla con estado reactivo.
 
 Trabajo autónomo individual de Carlos Luis Ortiz García, para Desarrollo de aplicaciones móviles nativas.
 
@@ -37,17 +37,19 @@ Crear cuenta o Iniciar sesión validan los formularios y abren una sesión vací
 ## Alcance y límites
 
 - Implementa las referencias P01–P20 mediante pantallas, variantes de estado, diálogos y paneles nativos; véase [trazabilidad](docs/TRAZABILIDAD.md).
-- El estado reside en Compose y se conserva con `rememberSaveable` al recrear la actividad. Esto no sustituye almacenamiento permanente: cerrar sesión lo limpia y no se garantiza conservarlo después de cerrar o forzar la aplicación.
+- La agenda se mantiene en un repositorio en memoria y los ViewModels conservan sus borradores al recrear la actividad. Cerrar sesión limpia los datos. El repositorio se reinicia cuando Android termina el proceso.
 - Los formularios conservan valores ante errores y confirman el descarte de cambios. Borrar requiere confirmación.
 - La semana es de lunes a domingo. El resumen cuenta pendientes de esa semana. Las pendientes de fechas pasadas se identifican como vencidas.
 - Se permiten fechas pasadas para registrar pendientes existentes. El orden por defecto es vencimiento ascendente, incluidas las vencidas.
 - Los nombres duplicados se comparan ignorando espacios repetidos, mayúsculas y tildes, dentro de la sesión.
 - Los avisos de 24 horas son una **vista previa**, sin permisos ni notificaciones del sistema.
-- Room, DataStore, ViewModel, backend y autenticación real se reservan para etapas posteriores. Esta entrega no necesita credenciales ni acceso a Internet en la aplicación.
+- La agenda de demostración funciona sin Internet mediante un repositorio de datos simulados.
 
 ## Organización del código
 
-`MainActivity` abre `AulaClaraApp`, que contiene el `NavHost` y la barra inferior. `AgendaState` reúne el estado de demostración compartido; `AgendaRules` contiene filtros, orden y reglas verificables. Cada archivo `*Screen` implementa una parte del recorrido. `Theme` y `Components` reúnen el diseño común. No se implementa una capa de repositorios ni una fuente de datos.
+`MainActivity` abre `AulaClaraApp`, que organiza la navegación. Cada destino obtiene un ViewModel y recoge su `StateFlow` con `collectAsStateWithLifecycle()`. Las pantallas y los controles reciben datos y callbacks. `Theme` y `Components` reúnen el diseño común.
+
+`data` contiene la interfaz `AgendaRepository`, su implementación de demostración y `AgendaRules`. El repositorio mantiene la fuente única de verdad y usa corutinas con `delay` para simular la latencia de las escrituras. `di` crea una sola instancia del repositorio e inyecta la interfaz mediante fábricas de ViewModels.
 
 Las interfaces se construyen en Compose. Los XML presentes corresponden al manifiesto, valores de plataforma y recursos vectoriales del ícono, no a layouts de pantallas.
 
@@ -55,7 +57,7 @@ Las interfaces se construyen en Compose. Los XML presentes corresponden al manif
 
 Contenido de ancho flexible, límite de lectura de 840 dp, formularios desplazables, controles que fluyen a varias líneas, insets del sistema y espacio para el teclado. El selector de hora usa entrada compacta cuando falta ancho. Los colores se acompañan de nombres y las acciones de icono tienen descripciones.
 
-## Evidencia y entrega
+## Evidencia de la etapa 2 y entrega
 
 - [Inicio](docs/evidencias/01-inicio.png), [formulario](docs/evidencias/02-formulario.png) y [detalle completado](docs/evidencias/03-detalle-completado.png): interfaz ejecutada con Android API 34 y renderizado nativo de Robolectric.
 - [Resultados de verificación](docs/evidencias/LEER.md), con informes JUnit y Android Lint.

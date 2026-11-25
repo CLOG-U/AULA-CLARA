@@ -5,7 +5,10 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import ec.edu.aulaclara.di.AulaClaraApplication
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,12 +18,21 @@ import java.io.File
 class MvpJourneyTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
 
+    @Before fun clearSession() = runBlocking {
+        (ui.activity.application as AulaClaraApplication).agendaRepository.signOut()
+    }
+
     private fun demo() {
         ui.waitUntil(30_000) { ui.onAllNodesWithTag("login_demo").fetchSemanticsNodes().isNotEmpty() }
         ui.onNodeWithTag("login_demo").performScrollTo().performClick()
+        waitForText("Hola, Carlos")
         ui.onNodeWithText("Hola, Carlos").assertIsDisplayed()
     }
     private fun clickTag(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
+    private fun waitForText(text: String, useUnmergedTree: Boolean = false) =
+        ui.waitUntil(10_000) { ui.onAllNodesWithText(text, useUnmergedTree = useUnmergedTree).fetchSemanticsNodes().isNotEmpty() }
+    private fun waitForTag(tag: String) =
+        ui.waitUntil(10_000) { ui.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }
     private fun capture(name: String) {
         ui.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -44,13 +56,16 @@ class MvpJourneyTest {
         ui.onNodeWithTag("delivery_title").performScrollTo()
         capture("02-formulario")
         clickTag("save_delivery")
+        waitForTag("edit_delivery")
         ui.onNodeWithText("Prototipo de navegación").assertIsDisplayed()
         clickTag("edit_delivery")
         ui.onNodeWithTag("delivery_title").performTextReplacement("Prototipo de Aula Clara")
         clickTag("save_delivery")
+        waitForTag("toggle_completed")
         ui.onNodeWithText("Detalle de entrega").assertIsDisplayed()
         ui.onNodeWithText("Prototipo de Aula Clara").performScrollTo().assertIsDisplayed()
         clickTag("toggle_completed")
+        waitForText("Completada", useUnmergedTree = true)
         ui.onNodeWithText("Prototipo de Aula Clara").performScrollTo()
         ui.onNodeWithText("Completada", useUnmergedTree = true).assertIsDisplayed()
         capture("03-detalle-completado")
@@ -59,6 +74,7 @@ class MvpJourneyTest {
         ui.onNodeWithText("Prototipo de Aula Clara").assertExists()
         clickTag("delete_delivery")
         ui.onAllNodesWithText("Eliminar entrega").onLast().performClick()
+        waitForText("Hola, Carlos")
         ui.onNodeWithText("Hola, Carlos").performScrollTo().assertIsDisplayed()
         ui.onNodeWithText("Prototipo de Aula Clara").assertDoesNotExist()
     }
@@ -71,13 +87,16 @@ class MvpJourneyTest {
         ui.onNodeWithTag("auth_password").performTextInput("Ejemplo2026")
         ui.onNodeWithText("Confirmar contraseña").performScrollTo().performTextInput("Ejemplo2026")
         clickTag("auth_submit")
+        waitForText("Crear primera entrega")
         ui.onNodeWithText("Crear primera entrega").performScrollTo().performClick()
         ui.onNodeWithTag("delivery_title").performTextInput("Primera actividad")
         ui.onNodeWithText("Crear primera materia").performScrollTo().performClick()
         ui.onNodeWithTag("catalog_name").performTextInput("Programación")
         clickTag("save_catalog")
+        waitForTag("delivery_title")
         ui.onNodeWithTag("delivery_title").assertTextContains("Primera actividad")
         clickTag("save_delivery")
+        waitForTag("edit_delivery")
         ui.onNodeWithText("Primera actividad").assertIsDisplayed()
     }
 
@@ -90,9 +109,11 @@ class MvpJourneyTest {
         clickTag("new_subject")
         ui.onNodeWithTag("catalog_name").performTextInput("Materia temporal")
         clickTag("save_catalog")
+        waitForTag("subjects_tab")
         ui.onNodeWithText("Materia temporal").performScrollTo().performClick()
         clickTag("delete_catalog")
         ui.onAllNodesWithText("Eliminar materia").onLast().performClick()
+        waitForTag("subjects_tab")
         ui.onNodeWithText("Materia temporal").assertDoesNotExist()
     }
 
@@ -125,6 +146,7 @@ class MvpJourneyTest {
         ui.onNodeWithText("Entendido").performClick()
         clickTag("sign_out")
         ui.onAllNodesWithText("Cerrar sesión").onLast().performClick()
+        waitForTag("login_demo")
         ui.onNodeWithTag("login_demo").assertExists()
     }
 
